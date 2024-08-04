@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק החייל</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('back.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #gameArea, #startScreen {
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            background-color: rgba(85, 107, 47, 0.7);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        #startScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        #startBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #556b2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #soldier {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+        }
+        .obstacle {
+            position: absolute;
+            font-size: 30px;
+        }
+        .judge {
+            font-size: 40px; /* גודל מוגדל לשופטת */
+        }
+        #score, #timer {
+            position: absolute;
+            top: 10px;
+            color: white;
+            font-size: 20px;
+        }
+        #score { left: 10px; }
+        #timer { right: 10px; }
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+        }
+        #restartBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #556b2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+		 #levelInfo {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h2>חייל, מוכן לשדה הקרב ?</h2>
+        <p>היזהר מפצמ"ר והפצ"ר(ית) !</p>
+        <button id="startBtn">גיוס קל</button>
+    </div>
+    <div id="gameArea" style="display: none;">
+        <div id="soldier">🫡</div>
+        <div id="score">ניקוד: 0</div>
+        <div id="timer">זמן: 30</div>
+		<div id="levelInfo">שלב: 1</div>
+        <div id="gameOver">
+            <p>חייל יקר אוהבים אותך</p>
+            <button id="restartBtn">חזור למילואים</button>
+        </div>
+    </div>
+
+    <audio id="failSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1vjGeDMGJHfH9dqQQAoUXrTpxapdFApGn+DxtmccBjiP1PfHejQGJHXG9NuSOgoUXbPpxateFApGnt/xtmkcBjiO1PfHezUGJHXF9NuTOwoUXbLpxaxfFApFnd/xtmldBjmO1PfIfDUGJXTF9NyUPAoUXLLpxq1fFApFnd7yt2pdBjmN0/jIfTYHJXPE9N2VPQsUXLHpx65gFApEnd7yuGpcBjmMz/fIfTYHJXPD89yVPQsUXLHoyK9gFAtEnN7yumtdBzmNz/fJfjcHJnLC89yWPwsVW7DoyLBhFAtFm93yu2xeBzmNzvfKfzcHJnHC892XPwsVW6/oyLFiFAtFm93yvG1fBzqMzvfLgDgHJnHB89+YQAwVWq/oybJiFAtFmtzyvW5gBzqLzffLgTkHJ3DB8+CZQQwVWq7oybNjFQxFmdzxvm9hCDuLzPbMgjoIJ2/A8+GbQgwVWa3oyrRkFQxGmNvxv3BiBzyKy/bOgzsIKG+/8uKcQwwWWazny7VlFgxGl9rxwHFjBzyJyvXPhDwIKW6+8eOeRQ0WWavnzLZmFgxHltnrwXJkCD2IyfXPhT0JKW298eOfRw0XWarnzLdoFw1Jltnrw3NlCD2HyPTRhj4JKmy78eSgSA4XWKnnzbhpFw1KlNjqxHRmCT6Gx/TSiD8KK2u68OahSg4YV6jmzrlqGA5LlNfqxnVoCUCFxvPTij8KLGq48OiiTA8YV6flz7prGA5Mk9bpx3ZpCkCExfLVjEELLWm372mjTQ8ZVqbjz7ttGQ9Nktbpy3drCkGDw/HWjUiUNgwvZ7rwaKVPEBlVp+LQvG4ZD02R1ejLd2sLQoLC8NeOSZY3DDFmuO9qpk8QGlSn4dHcbxoPT5DV6Mx4bAtDgcHv2pBKlzgNMmS372upUhEaVKbg0d1wGw9Pj9Tnzl5rDESAv+7bkUuYOQ0zYrXubKpTERtTpeDP3nEbEFGO0+fC5GwNRH++7dySTJk6DjRhsu1tq1QSHFKk38/fcRwRUo3S5nMeaw9FfrzsSZNNmjsONmGw7G6sVhMcUZbbrgllHBFTjNHlUimrD0Z9u+xKlU6bPA83YK/rb61XFB1PlNp3j2YdElSLz+RRKqsPR3y56kuWT5w9Dzhfrutur1gVHk6T2V+JZh0SVYrN40opqxBHerjoTZdQnT4POV6s7XCwWRYfTZLYWIbMAVaJy+Ja2LoRSHi35Q==">
+
+    <script>
+        const startScreen = document.getElementById('startScreen');
+        const startBtn = document.getElementById('startBtn');
+        const soldier = document.getElementById('soldier');
+        const gameArea = document.getElementById('gameArea');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const gameOverScreen = document.getElementById('gameOver');
+        const restartBtn = document.getElementById('restartBtn');
+        const failSound = document.getElementById('failSound');
+
+        let score = 0;
+        let timer = 30;
+        let level = 1;
+        let gameInterval;
+        let timerInterval;
+        let scoreInterval;
+
+        function moveCharacter(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const gameRect = gameArea.getBoundingClientRect();
+            const relativeX = x - gameRect.left;
+            soldier.style.left = `${Math.max(0, Math.min(relativeX, gameRect.width - soldier.offsetWidth))}px`;
+        }
+
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            const randomObstacle = Math.random();
+            if (randomObstacle < 0.33) {
+                obstacle.innerHTML = '💥'; // Collision symbol
+            } else if (randomObstacle < 0.66) {
+                obstacle.innerHTML = '👩‍⚖️'; // Judge emoji
+                obstacle.classList.add('judge');
+            } else {
+                obstacle.innerHTML = '🚀'; // Rocket (upside down)
+                obstacle.style.transform = 'rotate(180deg)';
+            }
+            obstacle.style.left = `${Math.random() * (gameArea.offsetWidth - 30)}px`;
+            obstacle.style.top = '-30px';
+            gameArea.appendChild(obstacle);
+
+            const fallSpeed = 2 + level * 0.5;
+            
+            function fall() {
+                const currentTop = parseInt(obstacle.style.top);
+                if (currentTop > gameArea.offsetHeight) {
+                    obstacle.remove();
+                    score++;
+                    scoreElement.textContent = `ניקוד: ${score}`;
+                } else {
+                    obstacle.style.top = `${currentTop + fallSpeed}px`;
+                    if (checkCollision(soldier, obstacle)) {
+                        endGame();
+                    } else {
+                        requestAnimationFrame(fall);
+                    }
+                }
+            }
+
+            fall();
+        }
+
+        function checkCollision(a, b) {
+            const aRect = a.getBoundingClientRect();
+            const bRect = b.getBoundingClientRect();
+            return !(aRect.bottom < bRect.top || aRect.top > bRect.bottom || aRect.right < bRect.left || aRect.left > bRect.right);
+        }
+
+		const levelInfoElement = document.getElementById('levelInfo');
+
+        function updateTimer() {
+            timer--;
+            timerElement.textContent = `זמן: ${timer}`;
+            if (timer <= 0) {
+                level++;
+                if (level > 5) level = 5;
+                timer = 30;
+                levelInfoElement.textContent = `שלב: ${level}`;
+                clearInterval(gameInterval);
+                gameInterval = setInterval(createObstacle, 1500 - level * 200);
+            }
+        }
+
+        function updateScore() {
+            score += 5;
+            scoreElement.textContent = `ניקוד: ${score}`;
+        }
+
+    function endGame() {
+        // מפסיק את כל האינטרוולים
+        clearInterval(gameInterval);
+        clearInterval(timerInterval);
+        clearInterval(scoreInterval);
+
+        // מסיר את כל המכשולים מהמסך
+        const obstacles = document.querySelectorAll('.obstacle');
+        obstacles.forEach(obstacle => obstacle.remove());
+
+        // מציג את מסך הסיום
+        gameOverScreen.style.display = 'flex';
+
+        // משמיע צליל פסילה
+        failSound.play();
+
+        // מפעיל רטט במכשירים ניידים
+        if ('vibrate' in navigator) {
+            navigator.vibrate(200);
+        }
+
+        // מסתיר את החייל ואת הניקוד והטיימר
+        soldier.style.display = 'none';
+        scoreElement.style.display = 'none';
+        timerElement.style.display = 'none';
+    }
+
+    function startGame() {
+        // מאפס ומציג מחדש את כל אלמנטי המשחק
+        soldier.style.display = 'block';
+        scoreElement.style.display = 'block';
+        timerElement.style.display = 'block';
+
+        startScreen.style.display = 'none';
+        gameArea.style.display = 'block';
+        
+        score = 0;
+        timer = 30;
+        level = 1;
+        scoreElement.textContent = `ניקוד: ${score}`;
+        timerElement.textContent = `זמן: ${timer}`;
+        gameOverScreen.style.display = 'none';
+
+        clearInterval(gameInterval);
+        clearInterval(timerInterval);
+        clearInterval(scoreInterval);
+
+        gameInterval = setInterval(createObstacle, 1500);
+        timerInterval = setInterval(updateTimer, 1000);
+        scoreInterval = setInterval(updateScore, 5000);
+    }
+
+        gameArea.addEventListener('mousemove', moveCharacter);
+        gameArea.addEventListener('touchmove', moveCharacter);
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
